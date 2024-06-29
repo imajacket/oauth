@@ -1,13 +1,14 @@
 # oauth middleware
-OAuth 2.0 Authorization Server &amp; Authorization Middleware for [go-chi](https://github.com/go-chi/chi)
+OAuth 2.0 Authorization Server &amp; Authorization Middleware for [echo](https://echo.labstack.com/)
 
-This library was ported to go-chi from https://github.com/maxzerbini/oauth by [jeffreydwalter](https://github.com/jeffreydwalter/oauth).
+This library was ported to echo from https://github.com/maxzerbini/oauth & https://github.com/jeffreydwalter/oauth.
 
-This library offers an OAuth 2.0 Authorization Server based on go-chi and an Authorization Middleware usable in Resource Servers developed with go-chi.
+This library offers an OAuth 2.0 Authorization Server based on Echo and an Authorization Middleware usable in Resource Servers developed with Echo.
 
 
 ## Build status
-[![Build Status](https://app.travis-ci.com/go-chi/oauth.svg?branch=master)](https://app.travis-ci.com/github/go-chi/oauth)
+
+[//]: # ([![Build Status]&#40;https://app.travis-ci.com/go-chi/oauth.svg?branch=master&#41;]&#40;https://app.travis-ci.com/github/go-chi/oauth&#41;)
 
 ## Authorization Server
 The Authorization Server is implemented by the struct _OAuthBearerServer_ that manages two grant types of authorizations (password and client_credentials). 
@@ -48,39 +49,67 @@ In this case the methods are called in this order:
 - _StoreTokenID()_ called after the token regeneration but before the response, programmers can use this method for storing the generated IDs
 - _AddProperties()_ used for add clear information to the response
 
-## Authorization Server usage example
-This snippet shows how to create an authorization server
-```Go
-func main() {
-    r := chi.NewRouter()
-    r.Use(middleware.Logger)
-    r.Use(middleware.Recoverer)
+[//]: # (## Authorization Server usage example)
 
-    s := oauth.NewOAuthBearerServer(
-        "mySecretKey-10101",
-	time.Second*120,
-	&TestUserVerifier{},
-	nil)
-	
-    r.Post("/token", s.UserCredentials)
-    r.Post("/auth", s.ClientCredentials)
-    http.ListenAndServe(":8080", r)
-}
-```
-See [/test/authserver/main.go](https://github.com/go-chi/oauth/blob/master/test/authserver/main.go) for the full example.
+[//]: # (This snippet shows how to create an authorization server)
 
-## Authorization Middleware usage example
-This snippet shows how to use the middleware
-```Go
-    r.Route("/", func(r chi.Router) {
-	// use the Bearer Authentication middleware
-	r.Use(oauth.Authorize("mySecretKey-10101", nil))
+[//]: # (```Go)
 
-	r.Get("/customers", GetCustomers)
-	r.Get("/customers/{id}/orders", GetOrders)
-    }
-```
-See [/test/resourceserver/main.go](https://github.com/go-chi/oauth/blob/master/test/resourceserver/main.go) for the full example.
+[//]: # (func main&#40;&#41; {)
+
+[//]: # (    r := chi.NewRouter&#40;&#41;)
+
+[//]: # (    r.Use&#40;middleware.Logger&#41;)
+
+[//]: # (    r.Use&#40;middleware.Recoverer&#41;)
+
+[//]: # ()
+[//]: # (    s := oauth.NewOAuthBearerServer&#40;)
+
+[//]: # (        "mySecretKey-10101",)
+
+[//]: # (	time.Second*120,)
+
+[//]: # (	&TestUserVerifier{},)
+
+[//]: # (	nil&#41;)
+
+[//]: # (	)
+[//]: # (    r.Post&#40;"/token", s.UserCredentials&#41;)
+
+[//]: # (    r.Post&#40;"/auth", s.ClientCredentials&#41;)
+
+[//]: # (    http.ListenAndServe&#40;":8080", r&#41;)
+
+[//]: # (})
+
+[//]: # (```)
+
+[//]: # (See [/test/authserver/main.go]&#40;https://github.com/go-chi/oauth/blob/master/test/authserver/main.go&#41; for the full example.)
+
+[//]: # ()
+[//]: # (## Authorization Middleware usage example)
+
+[//]: # (This snippet shows how to use the middleware)
+
+[//]: # (```Go)
+
+[//]: # (    r.Route&#40;"/", func&#40;r chi.Router&#41; {)
+
+[//]: # (	// use the Bearer Authentication middleware)
+
+[//]: # (	r.Use&#40;oauth.Authorize&#40;"mySecretKey-10101", nil&#41;&#41;)
+
+[//]: # ()
+[//]: # (	r.Get&#40;"/customers", GetCustomers&#41;)
+
+[//]: # (	r.Get&#40;"/customers/{id}/orders", GetOrders&#41;)
+
+[//]: # (    })
+
+[//]: # (```)
+
+[//]: # (See [/test/resourceserver/main.go]&#40;https://github.com/go-chi/oauth/blob/master/test/resourceserver/main.go&#41; for the full example.)
 
 Note that the authorization server and the authorization middleware are both using the same token formatter and the same secret key for encryption/decryption.
 
@@ -88,5 +117,6 @@ Note that the authorization server and the authorization middleware are both usi
 - [OAuth 2.0 RFC](https://tools.ietf.org/html/rfc6749)
 - [OAuth 2.0 Bearer Token Usage RFC](https://tools.ietf.org/html/rfc6750)
 
-## License
-[MIT](https://github.com/go-chi/oauth/blob/master/LICENSE)
+[//]: # (## License)
+
+[//]: # ([MIT]&#40;https://github.com/go-chi/oauth/blob/master/LICENSE&#41;)

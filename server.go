@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
 
@@ -59,66 +60,63 @@ func NewBearerServer(secretKey string, ttl time.Duration, verifier CredentialsVe
 }
 
 // UserCredentials manages password grant type requests
-func (bs *BearerServer) UserCredentials(w http.ResponseWriter, r *http.Request) {
-	grantType := r.FormValue("grant_type")
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	scope := r.FormValue("scope")
+func (bs *BearerServer) UserCredentials(c echo.Context) error {
+	grantType := c.FormValue("grant_type")
+	username := c.FormValue("username")
+	password := c.FormValue("password")
+	scope := c.FormValue("scope")
+
 	if username == "" || password == "" {
 		// get username and password from basic authorization header
 		var err error
-		username, password, err = GetBasicAuthentication(r)
+		username, password, err = GetBasicAuthentication(c.Request())
 		if err != nil {
-			renderJSON(w, "Not authorized", http.StatusUnauthorized)
-			return
+			return c.String(http.StatusUnauthorized, "Not authorized")
 		}
 	}
-
-	refreshToken := r.FormValue("refresh_token")
-	resp, statusCode := bs.generateTokenResponse(GrantType(grantType), username, password, refreshToken, scope, "", "", r)
-	renderJSON(w, resp, statusCode)
+	refreshToken := c.FormValue("refresh_token")
+	resp, statusCode := bs.generateTokenResponse(GrantType(grantType), username, password, refreshToken, scope, "", "", c.Request())
+	return c.JSON(statusCode, resp)
 }
 
 // ClientCredentials manages client credentials grant type requests
-func (bs *BearerServer) ClientCredentials(w http.ResponseWriter, r *http.Request) {
-	grantType := r.FormValue("grant_type")
+func (bs *BearerServer) ClientCredentials(c echo.Context) error {
+	grantType := c.FormValue("grant_type")
 	// grant_type client_credentials variables
-	clientID := r.FormValue("client_id")
-	clientSecret := r.FormValue("client_secret")
+	clientID := c.FormValue("client_id")
+	clientSecret := c.FormValue("client_secret")
 	if clientID == "" || clientSecret == "" {
 		// get clientID and secret from basic authorization header
 		var err error
-		clientID, clientSecret, err = GetBasicAuthentication(r)
+		clientID, clientSecret, err = GetBasicAuthentication(c.Request())
 		if err != nil {
-			renderJSON(w, "Not authorized", http.StatusUnauthorized)
-			return
+			return c.String(http.StatusUnauthorized, "Not authorized")
 		}
 	}
-	scope := r.FormValue("scope")
-	refreshToken := r.FormValue("refresh_token")
-	resp, statusCode := bs.generateTokenResponse(GrantType(grantType), clientID, clientSecret, refreshToken, scope, "", "", r)
-	renderJSON(w, resp, statusCode)
+	scope := c.FormValue("scope")
+	refreshToken := c.FormValue("refresh_token")
+	resp, statusCode := bs.generateTokenResponse(GrantType(grantType), clientID, clientSecret, refreshToken, scope, "", "", c.Request())
+	return c.JSON(statusCode, resp)
 }
 
 // AuthorizationCode manages authorization code grant type requests for the phase two of the authorization process
-func (bs *BearerServer) AuthorizationCode(w http.ResponseWriter, r *http.Request) {
-	grantType := r.FormValue("grant_type")
+func (bs *BearerServer) AuthorizationCode(c echo.Context) error {
+	grantType := c.FormValue("grant_type")
 	// grant_type client_credentials variables
-	clientID := r.FormValue("client_id")
-	clientSecret := r.FormValue("client_secret") // not mandatory
-	code := r.FormValue("code")
-	redirectURI := r.FormValue("redirect_uri") // not mandatory
-	scope := r.FormValue("scope")              // not mandatory
+	clientID := c.FormValue("client_id")
+	clientSecret := c.FormValue("client_secret") // not mandatory
+	code := c.FormValue("code")
+	redirectURI := c.FormValue("redirect_uri") // not mandatory
+	scope := c.FormValue("scope")              // not mandatory
 	if clientID == "" {
 		var err error
-		clientID, clientSecret, err = GetBasicAuthentication(r)
+		clientID, clientSecret, err = GetBasicAuthentication(c.Request())
 		if err != nil {
-			renderJSON(w, "Not authorized", http.StatusUnauthorized)
-			return
+			return c.String(http.StatusUnauthorized, "Not authorized")
 		}
 	}
-	resp, status := bs.generateTokenResponse(GrantType(grantType), clientID, clientSecret, "", scope, code, redirectURI, r)
-	renderJSON(w, resp, status)
+	resp, statusCode := bs.generateTokenResponse(GrantType(grantType), clientID, clientSecret, "", scope, code, redirectURI, c.Request())
+	return c.JSON(statusCode, resp)
 }
 
 // Generate token response

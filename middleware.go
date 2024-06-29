@@ -3,6 +3,7 @@ package oauth
 import (
 	"context"
 	"errors"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
 	"time"
@@ -36,30 +37,31 @@ func NewBearerAuthentication(secretKey string, formatter TokenSecureFormatter) *
 
 // Authorize is the OAuth 2.0 middleware for go-chi resource server.
 // Authorize creates a BearerAuthentication middleware and return the Authorize method.
-func Authorize(secretKey string, formatter TokenSecureFormatter) func(next http.Handler) http.Handler {
+func Authorize(secretKey string, formatter TokenSecureFormatter) func(next echo.HandlerFunc) echo.HandlerFunc {
 	return NewBearerAuthentication(secretKey, formatter).Authorize
 }
 
 // Authorize verifies the bearer token authorizing or not the request.
 // Token is retrieved from the Authorization HTTP header that respects the format
 // Authorization: Bearer {access_token}
-func (ba *BearerAuthentication) Authorize(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("Authorization")
+func (ba *BearerAuthentication) Authorize(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		auth := c.Request().Header.Get("Authorization")
 		token, err := ba.checkAuthorizationHeader(auth)
 		if err != nil {
-			renderJSON(w, "Not authorized: "+err.Error(), http.StatusUnauthorized)
-			return
+			return c.String(http.StatusUnauthorized, "Not authorized: "+err.Error())
 		}
 
-		ctx := r.Context()
+		ctx := c.Request().Context()
 		ctx = context.WithValue(ctx, CredentialContext, token.Credential)
 		ctx = context.WithValue(ctx, ClaimsContext, token.Claims)
 		ctx = context.WithValue(ctx, ScopeContext, token.Scope)
 		ctx = context.WithValue(ctx, TokenTypeContext, token.TokenType)
 		ctx = context.WithValue(ctx, AccessTokenContext, auth[7:])
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		c.SetRequest(c.Request().WithContext(ctx))
+
+		return next(c)
+	}
 }
 
 // Check header and token.
